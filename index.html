@@ -5,50 +5,70 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cálculo Preços de Pizza</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/typography@0.5.10/src/index.min.js"></script> -->
 </head>
 
-<body>
-  <form id="pizzaRegister" action="POST">
-    <input id="pizzaName" type="text" required>
-    <input id="pizzaSize" min="0" max="100" step="1" type="number" required>
-    <input id="pizzaPrice" min="0" step="0.01" type="number" required>
-    <button id="addPizza" value="null" type="submit">Adicionar Pizza</button>
+<body
+  class="container mx-auto max-w-4xl p-4 lg:p-12 bg-stone-200 text-stone-800 min-h-screen flex flex-col justify-center items-center dark:bg-stone-900 dark:text-stone-200">
+  <form id="pizzaRegister" action="POST" class="flex flex-col md:grid gap-2 md:grid-cols-5">
+    <div class="md:col-span-2 flex flex-col ">
+      <label for="pizzaName">Nome Pizza</label>
+      <input title="Nome da Pizza"
+        class="p-2 text-lg rounded bg-stone-100 bg-stone-100 text-stone-600 dark:bg-stone-700 dark:text-stone-100"
+        id="pizzaName" type="text" required>
+    </div>
+    <div class="col-span-1 flex flex-col">
+      <label for="pizzaSize">Tamanho Pizza</label>
+      <input title="Tamanho da Pizza"
+        class="p-2 text-lg rounded bg-stone-100 bg-stone-100 text-stone-600 dark:bg-stone-700 dark:text-stone-100"
+        id="pizzaSize" min="0" max="100" step="1" type="number" required>
+    </div>
+    <div class="col-span-1 flex flex-col">
+      <label for="pizzaPrice">Preço Pizza</label>
+      <input title="Preço da Pizza"
+        class="p-2 text-lg rounded bg-stone-100 bg-stone-100 text-stone-600 dark:bg-stone-700 dark:text-stone-100"
+        id="pizzaPrice" min="0" step="0.01" type="number" required>
+    </div>
+    <div class="flex flex-end">
+      <button
+        class="col-span-1 text-white bg-stone-800 hover:bg-stone-900 focus:outline-none focus:ring-4 focus:ring-stone-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-stone-800 dark:hover:bg-stone-700 dark:focus:ring-stone-700 dark:border-stone-700"
+        id="addPizza" value="null" type="submit">Adicionar
+        Pizza</button>
+    </div>
   </form>
 
-  <output id="pizzasAdded"></output>
+  <output class="text-2xl font-bold" id="pizzasAdded"></output>
 
-  <button id="comparePizzas" type="button">Comparar Valores</button>
+  <button
+    class="col-span-1 text-white bg-stone-800 hover:bg-stone-900 focus:outline-none focus:ring-4 focus:ring-stone-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-stone-800 dark:hover:bg-stone-700 dark:focus:ring-stone-700 dark:border-stone-700"
+    id="comparePizzas" type="button">Comparar Valores</button>
 
-  <table>
-    <tr>
-      <th>Nome</th>
-      <th>Tam.(cm)</th>
-      <th>Preço</th>
-      <th>R$ p/cm<sup>2</sup></th>
-      <th>Diferença%</th>
-    </tr>
-    <tr>
-      <td>Broto</td>
-      <td>15</td>
-      <td>R$25,00</td>
-      <td>R$1,00</td>
-      <td>Melhor CB</td>
-    </tr>
-    <tr>
-      <td>Pequena</td>
-      <td>25</td>
-      <td>R$35,00</td>
-      <td>R$1,40</td>
-      <td>+40%</td>
-    </tr>
-    <tr>
-      <td>Média</td>
-      <td>35</td>
-      <td>R$40,00</td>
-      <td>R$1,50</td>
-      <td>+25%</td>
-    </tr>
-  </table>
+  <div id="tableWrapper" style="display: none;" class="relative overflow-x-auto w-full">
+    <table class="w-full text-sm text-left text-stone-500 dark:text-stone-400">
+      <thead class="text-xs text-stone-700 uppercase bg-stone-50 dark:bg-stone-700 dark:text-stone-400">
+        <tr>
+          <th scope="col" class="px-6 py-3">
+            Nome
+          </th>
+          <th scope="col" class="px-6 py-3">
+            Tamanho (cm)
+          </th>
+          <th scope="col" class="px-6 py-3">
+            Preço
+          </th>
+          <th scope="col" class="px-6 py-3">
+            Preço/cm2
+          </th>
+          <th scope="col" class="px-6 py-3">
+            Variação
+          </th>
+        </tr>
+      </thead>
+      <tbody id="tableOutput">
+      </tbody>
+    </table>
+  </div>
 
 
   <script>
@@ -82,6 +102,9 @@
       }
       console.log('PIZZAS ::', pizzas)
       document.querySelector('#pizzasAdded').value = `${pizzas.length} pizzas adicionadas`
+
+      nodes.forEach(node => node.value = '')
+      event.target[0].focus()
     })
 
     //verifica se nome do tamanho de pizza ainda não foi usado
@@ -95,7 +118,7 @@
       return diff < 0 ? (diff * -1) : diff
     }
 
-    //atualiza valores para tela
+    //ordenas as pizzas por valor absoluto, realiza o calculo e cria a array de pizzas com valores relativos (ordenadas a partir do 'melhor valor')
     document.querySelector('#comparePizzas').addEventListener('click', () => {
       const pizzasSortedByAbsValue = sort(pizzas)
       const bestValue = pizzasSortedByAbsValue[0]
@@ -115,7 +138,37 @@
       })
 
       console.table(tableWithRelPrice)
+      printValuesToScreen(tableWithRelPrice)
     })
+
+    //imprime os resultados para tela
+    function printValuesToScreen(table) {
+      const tableOutput = document.querySelector('#tableOutput')
+      tableOutput.innerHTML = ''
+      table.forEach(item => {
+        const newRow = document.createElement('tr')
+        newRow.setAttribute('class', 'bg-white border-b dark:bg-stone-800 dark:border-stone-700')
+        newRow.innerHTML = `
+          <th scope="row" class="px-6 py-4 font-medium text-stone-900 whitespace-nowrap dark:text-white">
+            ${item.pizzaName}
+          </th>
+          <td class="px-6 py-4">
+            ${item.pizzaSize}
+          </td>
+          <td class="px-6 py-4">
+            ${item.pizzaPrice}
+          </td>
+          <td class="px-6 py-4">
+            ${item.pricePerCm2.toFixed(3)}
+          </td>
+          <td class="px-6 py-4">
+            ${item.relValue}
+          </td>
+        `
+        tableOutput.appendChild(newRow)
+      })
+      document.querySelector('#tableWrapper').setAttribute('style', 'display: block;')
+    }
 
     //ordena array de pizzas pelo menor valor (preco/cm2)
     function sort(arr) {
