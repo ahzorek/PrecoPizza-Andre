@@ -132,7 +132,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function printValuesToScreen(table) {
     const tableOutput = document.querySelector('#tableOutput')
     tableOutput.innerHTML = ''
-    table.forEach(({ pizzaName, pizzaSize, pizzaPrice, absolutePrice, relativePrice }) => {
+    table.forEach(({ pizzaName, pizzaFormat, pizzaSize, pizzaSize__rect, pizzaPrice, absolutePrice, relativePrice }) => {
+      const formattedPizzaSize = pizzaFormat === 'retangular' ? pizzaSize + 'x' + pizzaSize__rect + 'cm' : pizzaSize + 'cm'
       const formattedFullPrice = new Intl.NumberFormat('pt-BR', currencyOptions).format(pizzaPrice)
       const formattedAbsolutePrice = new Intl.NumberFormat('pt-BR', currencyOptions).format(absolutePrice)
       const formattedRelativePrice = relativePrice === 'Melhor preço' ? relativePrice : `+${relativePrice}%`
@@ -143,7 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
               ${pizzaName}
             </th>
             <td class="px-6 py-4">
-              ${pizzaSize}
+              ${formattedPizzaSize}
             </td>
             <td class="px-6 py-4">
               ${formattedFullPrice}
