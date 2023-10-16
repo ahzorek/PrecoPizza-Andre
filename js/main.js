@@ -52,14 +52,8 @@ document.addEventListener("DOMContentLoaded", () => {
       })
     }
 
-    //adiciona informação de quantas pizzas foram adicionadas a base de calculo
-    const messageOutput = pizzas.length > 1 ? 'pizzas adicionadas.' : 'pizza adicionada.'
-    document.querySelector('#pizzasAdded').value = `${pizzas.length} ${messageOutput}`
-
-    //se array pizza tem mais de 2 itens, é possivel realizar uma comparação, botao é habilitado
-    if (pizzas.length > 1) {
-      document.querySelector('#comparePizzas').setAttribute('style', 'display: block;')
-    }
+    //passa as informações mais recentes para a tela e atualiza a interface com possiveis novos botoes(ou remove)
+    updateScreen()
 
     //limpa os campos e retorna o foco ao campo inicial para que mais entradas sejam feitas
     nodes.forEach(node => node.value = '')
@@ -75,6 +69,33 @@ document.addEventListener("DOMContentLoaded", () => {
   // function checkForDupedSize(newPizza) {
   //   return pizzas.some(({ pizzaSize }) => newPizza.pizzaName === pizzaSize)
   // }
+
+  //deleta ultimo item adicionado
+  document.querySelector('#deleteLastPizza').addEventListener('click', e => {
+    const confirm = window.confirm('Tem certeza que deseja apagar o último item?')
+    if (pizzas.length > 1) {
+      if (confirm) {
+        pizzas.pop()
+        updateScreen()
+      }
+    }
+    else return
+  })
+
+  //deleta elemento especifico da array
+
+  //atualiza informações para a tela
+  function updateScreen() {
+    //adiciona informação de quantas pizzas foram adicionadas a base de calculo
+    const messageOutput = pizzas.length > 1 ? 'pizzas adicionadas.' : 'pizza adicionada.'
+    document.querySelector('#pizzasAdded').value = `${pizzas.length} ${messageOutput}`
+
+    //se array pizza tem mais de 2 itens, é possivel realizar uma comparação, botao é habilitado
+    if (pizzas.length > 1) {
+      document.querySelector('#comparePizzas').setAttribute('style', 'display: block;')
+      document.querySelector('#deleteLastPizza').setAttribute('style', 'display: block;')
+    }
+  }
 
 
   //verifica a diferença de valor percentual (em relação ao melhor valor)
@@ -101,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   //ordenas as pizzas por valor absoluto, realiza o calculo e cria a array de pizzas com valores relativos (ordenadas a partir do 'melhor valor')
   document.querySelector('#comparePizzas').addEventListener('click', () => {
-    const pizzasSortedByPrice = sort(pizzas)
+    const pizzasSortedByPrice = sort([...pizzas])
     const bestPrice = pizzasSortedByPrice[0]
     const pizzasWithRelativePrice = []
     pizzasSortedByPrice.forEach((pizza, index) => {
@@ -118,7 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     })
 
-    console.table(pizzasWithRelativePrice)
+    // console.table(pizzasWithRelativePrice)
     printValuesToScreen(pizzasWithRelativePrice)
   })
 
@@ -132,7 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function printValuesToScreen(table) {
     const tableOutput = document.querySelector('#tableOutput')
     tableOutput.innerHTML = ''
-    table.forEach(({ pizzaName, pizzaFormat, pizzaSize, pizzaSize__rect, pizzaPrice, absolutePrice, relativePrice }) => {
+    table.forEach(({ pizzaName, pizzaFormat, pizzaSize, pizzaSize__rect, pizzaPrice, absolutePrice, relativePrice }, index) => {
       const formattedPizzaSize = pizzaFormat === 'retangular' ? pizzaSize + 'x' + pizzaSize__rect + 'cm' : pizzaSize + 'cm'
       const formattedFullPrice = new Intl.NumberFormat('pt-BR', currencyOptions).format(pizzaPrice)
       const formattedAbsolutePrice = new Intl.NumberFormat('pt-BR', currencyOptions).format(absolutePrice)
