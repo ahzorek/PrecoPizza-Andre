@@ -1,0 +1,14 @@
+    body {
+      background-image: url('https://source.unsplash.com/random/1600×900/?pizza');
+      background-size: cover;
+    }
+
+    input[type=number] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+    }
