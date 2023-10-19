@@ -4,26 +4,46 @@ document.addEventListener("DOMContentLoaded", () => {
   //apos carregar o DOM, inicializa o programa e suas definições
   const pizzas = []
 
+
+  //cria dinamicamente os formatos de pizza possiveis. se eventualmente forem adicionados mais formatos, pode ser alterado diretamente nesta area do programa
+  const formatos = ['Quadrada', 'Retangular', 'Circular']
+
+  formatos.forEach(formato => {
+    const formatoOption = document.createElement('option')
+    formatoOption.innerText = formato
+    formatoOption.value = formato.toLowerCase()
+    document.querySelector('#pizzaFormat').appendChild(formatoOption)
+  })
+
+  //altera o comportamento do campo opcional de tamanho (valido para pizzas retangulares apenas)
+  const pizzaSizeRectInput = document.querySelector('#pizzaSize__rect')
+
+  function disableOptionalSizeInput(input) {
+    input.removeAttribute('required')
+    input.setAttribute('disabled', false)
+    input.classList.replace('input-enabled', 'input-disabled')
+  }
+
+  function enableOptionalSizeInput(input) {
+    input.removeAttribute('disabled')
+    input.setAttribute('required', false)
+    input.classList.replace('input-disabled', 'input-enabled')
+  }
+  ///////////////
+
   //ativa o campo necessario caso usuario queira calcular pizza retangular
   document.querySelector('Select[title="Formato da Pizza"]').addEventListener('change', e => {
     const type = e.target.value
-    const pizzaSizeRectInput = document.querySelector('#pizzaSize__rect')
     if (type === 'retangular') {
-      pizzaSizeRectInput.disabled = false
-      pizzaSizeRectInput.required = true
-      pizzaSizeRectInput.setAttribute('style', 'opacity: 1;')
-      pizzaSizeRectInput.setAttribute('title', 'Comprimento da Pizza. Preencha este campo')
-
+      enableOptionalSizeInput(pizzaSizeRectInput)
     } else {
-      pizzaSizeRectInput.disabled = true
-      pizzaSizeRectInput.required = false
-      pizzaSizeRectInput.setAttribute('style', 'opacity: .2;')
-      pizzaSizeRectInput.setAttribute('title', 'Ignore este campo')
+      disableOptionalSizeInput(pizzaSizeRectInput)
     }
   })
 
   //recebe valores (nome, tamanho e preço das pizzas) e salva na memoria
-  document.querySelector('#pizzaRegister').addEventListener('submit', event => {
+  const pizzaRegisterForm = document.querySelector('#pizzaRegister')
+  pizzaRegisterForm.addEventListener('submit', event => {
     event.preventDefault()
     const nodes = Array.from(event.target)
     let pizza = {}
@@ -56,7 +76,8 @@ document.addEventListener("DOMContentLoaded", () => {
     updateScreen()
 
     //limpa os campos e retorna o foco ao campo inicial para que mais entradas sejam feitas
-    nodes.forEach(node => node.value = '')
+    pizzaRegisterForm.reset()
+    disableOptionalSizeInput(pizzaSizeRectInput)
     event.target[0].focus()
   })
 
@@ -64,11 +85,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function checkForDupedName(newPizza) {
     return pizzas.some(({ pizzaName }) => newPizza.pizzaName === pizzaName)
   }
-
-  // //verifica se o tamanho de pizza ainda não foi usado
-  // function checkForDupedSize(newPizza) {
-  //   return pizzas.some(({ pizzaSize }) => newPizza.pizzaName === pizzaSize)
-  // }
 
   //deleta ultimo item adicionado
   document.querySelector('#deleteLastPizza').addEventListener('click', e => {
@@ -83,20 +99,23 @@ document.addEventListener("DOMContentLoaded", () => {
   })
 
   //deleta elemento especifico da array
+  /////////////////////////////////////
+
 
   //atualiza informações para a tela
   function updateScreen() {
-    //adiciona informação de quantas pizzas foram adicionadas a base de calculo
-    const messageOutput = pizzas.length > 1 ? 'pizzas adicionadas.' : 'pizza adicionada.'
-    document.querySelector('#pizzasAdded').value = `${pizzas.length} ${messageOutput}`
+    if (pizzas.length > 0) {
+      //adiciona informação de quantas pizzas foram adicionadas a base de calculo
+      const messageOutput = pizzas.length > 1 ? 'pizzas adicionadas.' : 'pizza adicionada.'
+      document.querySelector('#pizzasAdded').value = `${pizzas.length} ${messageOutput}`
 
-    //se array pizza tem mais de 2 itens, é possivel realizar uma comparação, botao é habilitado
-    if (pizzas.length > 1) {
-      document.querySelector('#comparePizzas').setAttribute('style', 'display: block;')
-      document.querySelector('#deleteLastPizza').setAttribute('style', 'display: block;')
+      //se array pizza tem mais de 2 itens, é possivel realizar uma comparação, botao é habilitado
+      if (pizzas.length > 1) {
+        document.querySelector('#comparePizzas').classList.replace('button-hidden', 'button-visible')
+        document.querySelector('#deleteLastPizza').classList.replace('button-hidden', 'button-visible')
+      }
     }
   }
-
 
   //verifica a diferença de valor percentual (em relação ao melhor valor)
   function getDiffPercent(bestPrice, comparingValue) {
@@ -129,7 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (index === 0) {
         pizzasWithRelativePrice.push({
           ...pizza,
-          relativePrice: 'Melhor preço'
+          relativePrice: 'Melhor Preço'
         })
       } else {
         pizzasWithRelativePrice.push({
@@ -153,33 +172,38 @@ document.addEventListener("DOMContentLoaded", () => {
   function printValuesToScreen(table) {
     const tableOutput = document.querySelector('#tableOutput')
     tableOutput.innerHTML = ''
-    table.forEach(({ pizzaName, pizzaFormat, pizzaSize, pizzaSize__rect, pizzaPrice, absolutePrice, relativePrice }, index) => {
-      const formattedPizzaSize = pizzaFormat === 'retangular' ? pizzaSize + 'x' + pizzaSize__rect + 'cm' : pizzaSize + 'cm'
+    table.forEach(({ pizzaName, pizzaFormat, pizzaSize, pizzaSize__rect, pizzaPrice, absolutePrice, relativePrice }) => {
+      const formattedPizzaSize = pizzaFormat === 'retangular'
+        ? pizzaSize + 'x' + pizzaSize__rect + 'cm'
+        : pizzaFormat === 'quadrada'
+          ? pizzaSize + 'x' + pizzaSize + 'cm'
+          : pizzaSize + 'cm'
+
       const formattedFullPrice = new Intl.NumberFormat('pt-BR', currencyOptions).format(pizzaPrice)
       const formattedAbsolutePrice = new Intl.NumberFormat('pt-BR', currencyOptions).format(absolutePrice)
-      const formattedRelativePrice = relativePrice === 'Melhor preço' ? relativePrice : `+${relativePrice}%`
-      const newRow = document.createElement('tr')
-      newRow.setAttribute('class', 'bg-white border-b dark:bg-stone-800 dark:border-stone-700')
-      newRow.innerHTML = `
-            <th scope="row" class="px-6 py-4 font-medium text-stone-900 whitespace-nowrap dark:text-white">
-              ${pizzaName}
-            </th>
-            <td class="px-6 py-4">
-              ${formattedPizzaSize}
-            </td>
-            <td class="px-6 py-4">
-              ${formattedFullPrice}
-            </td>
-            <td class="px-6 py-4">
-              ${formattedAbsolutePrice}
-            </td>
-            <td class="px-6 py-4">
-              ${formattedRelativePrice}
-            </td>
-          `
-      tableOutput.appendChild(newRow)
+      const formattedRelativePrice = relativePrice === 'Melhor Preço' ? relativePrice : `+${relativePrice}%`
+      const newRow = createTableElements('tr', 'bg-white border-b dark:bg-stone-800 dark:border-stone-700') //cria a nova row
+      const newTh = createTableElements('th', 'px-6 py-4 font-medium text-stone-900 whitespace-nowrap dark:text-white', pizzaName) //cria a <th> especifica dessa row
+      newTh.setAttribute('scope', 'row') //define que essa <th> é referente à row
+      newRow.appendChild(newTh) //insere a <th> criada dentro da nova row
+
+      //inicializa criação dinamica dos elementos <td> 
+      const pizzaTableData = [formattedPizzaSize, formattedFullPrice, formattedAbsolutePrice, formattedRelativePrice]
+
+      pizzaTableData.forEach(data => {
+        newRow.appendChild(createTableElements('td', 'px-6 py-4', data)) //cria e ja insere os elementos <td> ja passando as classes tailwind
+      })
+      tableOutput.appendChild(newRow) //insere a new row na tbody. processo se repete dentro do forEach
     })
-    document.querySelector('#tableWrapper').setAttribute('style', 'display: block;')
+    document.querySelector('#tableWrapper').classList.replace('table-hidden', 'table-visible') //altera a classe de visibilidade e mostra a tabela
+  }
+
+  //funcao cria elementos dinamicamente
+  function createTableElements(tag, cls, content = '') {
+    const newEl = document.createElement(tag)
+    newEl.setAttribute('class', cls)
+    newEl.innerHTML = content
+    return newEl
   }
 
   //ordena array de pizzas pelo menor valor (preco/cm2)

@@ -12,3 +12,28 @@
     input::-webkit-inner-spin-button {
       -webkit-appearance: none;
     }
+
+    .input-disabled {
+      opacity: .2;
+    }
+
+    .input-enabled{
+      opacity: 1;
+    }
+
+    .button-hidden {
+      display: none;
+    }
+
+    .button-visible{
+      display: block;
+    }
+
+    .table-hidden{
+      display: none;
+    }
+
+    .table-visible {
+      display: block;
+    }
+
